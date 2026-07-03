@@ -152,73 +152,157 @@
 
 # pg.run()
 
+# import streamlit as st
+
+# # =========================================
+# # ページ設定
+# # =========================================
+# st.set_page_config(
+#     page_title="株兄さん",
+#     page_icon="📈",
+#     layout="wide"
+# )
+
+# # =========================================
+# # ヘッダー（アプリの世界観）
+# # =========================================
+# st.markdown("""
+# <style>
+# .title {
+#     font-size: 2.8rem;
+#     font-weight: 800;
+#     text-align: center;
+#     margin-top: 1rem;
+# }
+
+# .subtitle {
+#     text-align: center;
+#     color: #666;
+#     margin-bottom: 2rem;
+# }
+
+# .info-box {
+#     padding: 15px;
+#     border-radius: 12px;
+#     background: #f5f7fb;
+#     border: 1px solid #e6e6e6;
+# }
+# </style>
+# """, unsafe_allow_html=True)
+
+# st.markdown('<div class="title">📈 Investment Navigator</div>', unsafe_allow_html=True)
+# st.markdown('<div class="subtitle">投資を学び、診断し、シミュレーションする総合アプリ</div>', unsafe_allow_html=True)
+
+# st.divider()
+
+# # =========================================
+# # ナビゲーション（シンプルで迷わせない）
+# # =========================================
+# home_page = st.Page("views/home.py", title="ホーム", icon="🏠")
+# quiz_page = st.Page("views/quiz.py", title="学習", icon="📚")
+# diagnosis_page = st.Page("views/diagnosis.py", title="診断", icon="🧠")
+# simulation_page = st.Page("views/simulation.py", title="シミュレーション", icon="📊")
+# mypage_page = st.Page("views/mypage.py", title="マイページ", icon="👤")
+
+# pg = st.navigation([
+#     home_page,
+#     quiz_page,
+#     diagnosis_page,
+#     simulation_page,
+#     mypage_page
+# ])
+
+# # =========================================
+# # アプリ実行
+# # =========================================
+# pg.run()
+
+# # =========================================
+# # フッター（安心感）
+# # =========================================
+# st.divider()
+# st.caption("© 2026 株兄さん | Learning & Simulation Platform")
+
 import streamlit as st
 
-# =========================================
+# ==============================
 # ページ設定
-# =========================================
+# ==============================
 st.set_page_config(
     page_title="株兄さん",
     page_icon="📈",
     layout="wide"
 )
 
-# =========================================
-# ヘッダー（アプリの世界観）
-# =========================================
+# ==============================
+# CSS
+# ==============================
 st.markdown("""
 <style>
-.title {
-    font-size: 2.8rem;
+.sidebar-title {
+    font-size: 1.2rem;
     font-weight: 800;
-    text-align: center;
-    margin-top: 1rem;
+    margin-bottom: 10px;
 }
 
-.subtitle {
-    text-align: center;
-    color: #666;
-    margin-bottom: 2rem;
-}
-
-.info-box {
-    padding: 15px;
-    border-radius: 12px;
-    background: #f5f7fb;
-    border: 1px solid #e6e6e6;
+.active-page {
+    background: #e8f0ff;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    color: #1f4bd8;
 }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="title">📈 Investment Navigator</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">投資を学び、診断し、シミュレーションする総合アプリ</div>', unsafe_allow_html=True)
-
-st.divider()
-
-# =========================================
-# ナビゲーション（シンプルで迷わせない）
-# =========================================
+# ==============================
+# ページ定義
+# ==============================
 home_page = st.Page("views/home.py", title="ホーム", icon="🏠")
 quiz_page = st.Page("views/quiz.py", title="学習", icon="📚")
 diagnosis_page = st.Page("views/diagnosis.py", title="診断", icon="🧠")
 simulation_page = st.Page("views/simulation.py", title="シミュレーション", icon="📊")
 mypage_page = st.Page("views/mypage.py", title="マイページ", icon="👤")
 
-pg = st.navigation([
-    home_page,
-    quiz_page,
-    diagnosis_page,
-    simulation_page,
-    mypage_page
-])
+pages = {
+    "ホーム": home_page,
+    "学習": quiz_page,
+    "診断": diagnosis_page,
+    "シミュレーション": simulation_page,
+    "マイページ": mypage_page
+}
 
-# =========================================
-# アプリ実行
-# =========================================
+# ==============================
+# ナビゲーション
+# ==============================
+pg = st.navigation(list(pages.values()))
+
+# ==============================
+# サイドバー（アクティブ表示）
+# ==============================
+with st.sidebar:
+    st.markdown('<div class="sidebar-title">📈 Investment Navigator</div>', unsafe_allow_html=True)
+
+    st.write("ナビゲーション")
+
+    st.divider()
+
+    # 現在ページの取得（Streamlit内部状態）
+    current = st.session_state.get("current_page", None)
+
+    # アクティブ表示（簡易ロジック）
+    for name, page in pages.items():
+        if current and str(current) == str(page):
+            st.markdown(f"👉 <div class='active-page'>{name}</div>", unsafe_allow_html=True)
+        else:
+            st.write(f"{name}")
+
+# ==============================
+# 実行
+# ==============================
 pg.run()
 
-# =========================================
-# フッター（安心感）
-# =========================================
-st.divider()
-st.caption("© 2026 Investment Navigator | Learning & Simulation Platform")
+# ==============================
+# フッター
+# ==============================
+st.caption("株兄さん")
