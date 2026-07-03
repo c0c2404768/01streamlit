@@ -3,11 +3,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import urllib.parse
 
-# タイトル
 st.markdown("<h2 style='color:#FF6B6B;'>📂 キミの専用マイページ</h2>", unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 1. タイプ診断結果の共有
+# 1. 🏆 診断結果の記録と共有
 # -----------------------------------------------------------------------------
 st.markdown("### 🏆 診断結果の記録")
 if "user_type" in st.session_state:
@@ -21,9 +20,8 @@ if "user_type" in st.session_state:
         </div>
     """, unsafe_allow_html=True)
     
-    # SNS共有ボタンの作成
     share_text = f"株兄さんで診断した結果、私は「{user_type}」だったぜ！✨ #株兄さん #新NISA"
-    share_url = "https://your-app-url.streamlit.app/" # 本番URLが決まったら書き換えてください
+    share_url = "https://your-app-url.streamlit.app/"
     
     col_sns1, col_sns2 = st.columns(2)
     with col_sns1:
@@ -33,42 +31,49 @@ if "user_type" in st.session_state:
         line_url = f"https://social-plugins.line.me/lineit/share?url={urllib.parse.quote(share_url)}&text={urllib.parse.quote(share_text)}"
         st.link_button("LINEで仲間に送る", line_url, use_container_width=True)
 else:
-    st.info("まだ診断を受けていないようだな!「投資診断」ページへGOだぜ!🚀")
+    st.info("まだ診断を受けていないようだな！「投資診断」ページへGOだぜ！🚀")
+
 
 # -----------------------------------------------------------------------------
-# 2. お気に入りの管理（個別削除機能付き）
+# 2. ⭐ 他のページから追加されたお気に入りの表示と管理
 # -----------------------------------------------------------------------------
 st.markdown("---")
 st.markdown("### ⭐ お気に入り銘柄リスト")
 
+# もし他ページでエラーが起きてもマイページが壊れないように安全装置を配置
+if "favorites" not in st.session_state:
+    st.session_state.favorites = []
+
 if not st.session_state.favorites:
-    st.write("まだお気に入りが登録されていないぞ。")
+    st.info("まだお気に入りがないぜ！診断やお宝銘柄を見つけてこいよな！")
 else:
-    # 削除ボタンとリストを並べる
+    st.write("現在のお気に入りリスト（個別削除もできるぜ）：")
+    
+    # リスト表示と個別削除
     for fav in st.session_state.favorites:
         col1, col2 = st.columns([4, 1])
         with col1:
-            st.markdown(f"<span class='stock-badge' style='display:inline-block; margin-bottom:10px;'>{fav}</span>", unsafe_allow_html=True)
+            st.markdown(f"- <span class='stock-badge'>{fav}</span>", unsafe_allow_html=True)
         with col2:
-            if st.button("削除", key=f"del_{fav}"):
+            # 個別削除ボタン（キーが重複しないように銘柄名を仕込む）
+            if st.button("削除", key=f"delete_{fav}"):
                 st.session_state.favorites.remove(fav)
                 st.rerun()
 
+
 # -----------------------------------------------------------------------------
-# 3. 気になる銘柄を比較・確認
+# 3. 📊 気なる銘柄を比較・確認
 # -----------------------------------------------------------------------------
 st.markdown("---")
 st.markdown("### 📊 銘柄比較チャート")
 
 if len(st.session_state.favorites) < 2:
-    st.warning("比較するには2つ以上の銘柄をお気に入りに追加してくれ！")
+    st.warning("比較するには、他のページで2つ以上の銘柄をお気に入りに追加してくれ！")
 else:
     selected_favs = st.multiselect("比較したい銘柄を選んでね", st.session_state.favorites, default=st.session_state.favorites[:2])
     
     if selected_favs:
-        # データの準備
         compare_data = []
-        # 全銘柄リストから選択された銘柄のステータスを抽出
         all_stocks_data = []
         for p in st.session_state.INVESTMENT_PROFILES.values():
             all_stocks_data.extend(p["stocks"])
@@ -85,7 +90,6 @@ else:
         
         df_compare = pd.DataFrame(compare_data)
         
-        # Plotlyでレーダーチャート、または棒グラフで比較
         fig = go.Figure()
         metrics = ["安全", "成長", "お得"]
         
@@ -99,7 +103,6 @@ else:
             
         fig.update_layout(
             barmode='group',
-            title="銘柄別ステータス比較",
             xaxis_title="評価項目",
             yaxis_title="レベル (1-5)",
             paper_bgcolor='rgba(0,0,0,0)',
