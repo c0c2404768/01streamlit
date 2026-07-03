@@ -71,9 +71,9 @@ st.markdown("""
 # -----------------------------------------------------------------------------
 if "favorites" not in st.session_state:
     st.session_state.favorites = []
+
 if "quiz_answered" not in st.session_state:
     st.session_state.quiz_answered = False
-
 # -----------------------------------------------------------------------------
 # 3. 共通データ（各ページから st.session_state を経由して参照可能にする）
 # -----------------------------------------------------------------------------
