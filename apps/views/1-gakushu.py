@@ -147,6 +147,7 @@ with tabs[0]:
         </div>
         """,
         unsafe_allow_html=True,
+        
     )
     st.warning("注意：新NISAを使っても元本保証ではありません。価格は上下するため、損失が出る可能性があります。")
 
