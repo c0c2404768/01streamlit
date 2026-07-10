@@ -6,7 +6,7 @@ import streamlit as st
  #-----------------------------------------------------------------------------
 st.set_page_config(page_title="株兄さん v2.1 - 華麗なる投資診断", page_icon="✨", layout="wide")
 
- st.markdown("""
+st.markdown("""
      <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
      <style>
      html, body, [data-testid="stAppViewContainer"] {
@@ -71,15 +71,15 @@ st.set_page_config(page_title="株兄さん v2.1 - 華麗なる投資診断", pa
   # -----------------------------------------------------------------------------
   #2. セッション状態の初期化
   #-----------------------------------------------------------------------------
- if "favorites" not in st.session_state:
+if "favorites" not in st.session_state:
      st.session_state.favorites = []
- if "quiz_answered" not in st.session_state:
+if "quiz_answered" not in st.session_state:
      st.session_state.quiz_answered = False
 
   #-----------------------------------------------------------------------------
   #3. 共通データ（各ページから st.session_state を経由して参照可能にする）
   #-----------------------------------------------------------------------------
- if "INVESTMENT_PROFILES" not in st.session_state:
+if "INVESTMENT_PROFILES" not in st.session_state:
      st.session_state.INVESTMENT_PROFILES = {
          "安心コツコツ型": {
              "description": "世界経済の成長にまるごと投資！大きな失敗を避け、長い時間をかけて財産を築く王道スタイルだぜ。",
@@ -108,24 +108,24 @@ st.set_page_config(page_title="株兄さん v2.1 - 華麗なる投資診断", pa
   #-----------------------------------------------------------------------------
   #4. ページルーティング定義
   #-----------------------------------------------------------------------------
- home_page = st.Page("views/home.py", title="ホーム", icon="🏠")
- diagnosis_page = st.Page("views/diagnosis.py", title="投資診断", icon="🔍")
- simulation_page = st.Page("views/simulation.py", title="過去シミュレーション", icon="📊")
- quiz_page = st.Page("views/quiz.py", title="NISA学習・クイズ", icon="📝")
- mypage_page = st.Page("views/mypage.py", title="マイページ", icon="📂")
+home_page = st.Page("views/home.py", title="ホーム", icon="🏠")
+diagnosis_page = st.Page("views/diagnosis.py", title="投資診断", icon="🔍")
+simulation_page = st.Page("views/simulation.py", title="過去シミュレーション", icon="📊")
+quiz_page = st.Page("views/quiz.py", title="NISA学習・クイズ", icon="📝")
+mypage_page = st.Page("views/mypage.py", title="マイページ", icon="📂")
 
   # ナビゲーションの実行
- pg = st.navigation({
+pg = st.navigation({
      "🤵 株兄さん メニュー": [home_page, diagnosis_page, simulation_page, quiz_page, mypage_page]
  })
- pg.run()
+pg.run()
 
 
 
 #  -------------------------------------------------
 # ページ設定
 #  -------------------------------------------------
- st.set_page_config(
+st.set_page_config(
      page_title="Investment Navigator",
      page_icon="📈",
      layout="wide"
@@ -134,16 +134,16 @@ st.set_page_config(page_title="株兄さん v2.1 - 華麗なる投資診断", pa
 #  -------------------------------------------------
 # ページ定義（ルーター）
 #  -------------------------------------------------
- home_page = st.Page("views/home.py", title="ホーム", icon="🏠")
- quiz_page = st.Page("views/quiz.py", title="学習", icon="📚")
- diagnosis_page = st.Page("views/diagnosis.py", title="診断", icon="🧠")
- mypage_page = st.Page("views/mypage.py", title="マイページ", icon="👤")
- simulation_page = st.Page("views/simulation.py", title="シミュレーション", icon="📊")
+home_page = st.Page("views/home.py", title="ホーム", icon="🏠")
+quiz_page = st.Page("views/quiz.py", title="学習", icon="📚")
+diagnosis_page = st.Page("views/diagnosis.py", title="診断", icon="🧠")
+mypage_page = st.Page("views/mypage.py", title="マイページ", icon="👤")
+simulation_page = st.Page("views/simulation.py", title="シミュレーション", icon="📊")
 
   # -------------------------------------------------
   #ナビゲーション（統一構成）
   #-------------------------------------------------
- pg = st.navigation([
+pg = st.navigation([
      home_page,
      quiz_page,
      diagnosis_page,
@@ -151,13 +151,13 @@ st.set_page_config(page_title="株兄さん v2.1 - 華麗なる投資診断", pa
      mypage_page
  ])
 
- pg.run()
+pg.run()
 
 
 #  =========================================
 #  ページ設定
 #  =========================================
- st.set_page_config(
+st.set_page_config(
      page_title="株兄さん",
      page_icon="📈",
      layout="wide"
@@ -166,7 +166,7 @@ st.set_page_config(page_title="株兄さん v2.1 - 華麗なる投資診断", pa
   # =========================================
   #ヘッダー（アプリの世界観）
   #=========================================
- st.markdown("""
+st.markdown("""
  <style>
  .title {
      font-size: 2.8rem;
@@ -190,21 +190,21 @@ st.set_page_config(page_title="株兄さん v2.1 - 華麗なる投資診断", pa
  </style>
  """, unsafe_allow_html=True)
 
- st.markdown('<div class="title">📈 Investment Navigator</div>', unsafe_allow_html=True)
- st.markdown('<div class="subtitle">投資を学び、診断し、シミュレーションする総合アプリ</div>', unsafe_allow_html=True)
+st.markdown('<div class="title">📈 Investment Navigator</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">投資を学び、診断し、シミュレーションする総合アプリ</div>', unsafe_allow_html=True)
 
- st.divider()
+st.divider()
 
  # =========================================
  # ナビゲーション（シンプルで迷わせない）
  # =========================================
- home_page = st.Page("views/home.py", title="ホーム", icon="🏠")
- quiz_page = st.Page("views/quiz.py", title="学習", icon="📚")
- diagnosis_page = st.Page("views/diagnosis.py", title="診断", icon="🧠")
- simulation_page = st.Page("views/simulation.py", title="シミュレーション", icon="📊")
- mypage_page = st.Page("views/mypage.py", title="マイページ", icon="👤")
+home_page = st.Page("views/home.py", title="ホーム", icon="🏠")
+quiz_page = st.Page("views/quiz.py", title="学習", icon="📚")
+diagnosis_page = st.Page("views/diagnosis.py", title="診断", icon="🧠")
+simulation_page = st.Page("views/simulation.py", title="シミュレーション", icon="📊")
+mypage_page = st.Page("views/mypage.py", title="マイページ", icon="👤")
 
- pg = st.navigation([
+pg = st.navigation([
      home_page,
      quiz_page,
      diagnosis_page,
@@ -215,20 +215,19 @@ st.set_page_config(page_title="株兄さん v2.1 - 華麗なる投資診断", pa
   # =========================================
   #アプリ実行
   # =========================================
- pg.run()
+pg.run()
 
  # =========================================
  # フッター（安心感）
  # =========================================
- st.divider()
- st.caption("© 2026 株兄さん | Learning & Simulation Platform")
+st.divider()
+st.caption("© 2026 株兄さん | Learning & Simulation Platform")
 
- import streamlit as st
 
  # ==============================
  # ページ設定
  # ==============================
- st.set_page_config(
+st.set_page_config(
      page_title="株兄さん",
      page_icon="📈",
      layout="wide"
@@ -237,7 +236,7 @@ st.set_page_config(page_title="株兄さん v2.1 - 華麗なる投資診断", pa
  # ==============================
  # CSS
   #==============================
- st.markdown("""
+st.markdown("""
  <style>
  .sidebar-title {
      font-size: 1.2rem;
@@ -258,15 +257,15 @@ st.set_page_config(page_title="株兄さん v2.1 - 華麗なる投資診断", pa
  # -----------------------------------------------------------------------------
  # 2. セッション状態の初期化
  # -----------------------------------------------------------------------------
- if "favorites" not in st.session_state:
+if "favorites" not in st.session_state:
      st.session_state.favorites = []
 
- if "quiz_answered" not in st.session_state:
+if "quiz_answered" not in st.session_state:
      st.session_state.quiz_answered = False
  # -----------------------------------------------------------------------------
  # 3. 共通データ（各ページから st.session_state を経由して参照可能にする）
  # -----------------------------------------------------------------------------
- if "INVESTMENT_PROFILES" not in st.session_state:
+if "INVESTMENT_PROFILES" not in st.session_state:
      st.session_state.INVESTMENT_PROFILES = {
          "安心コツコツ型": {
              "description": "世界経済の成長にまるごと投資！大きな失敗を避け、長い時間をかけて財産を築く王道スタイルだぜ。",
@@ -295,13 +294,13 @@ st.set_page_config(page_title="株兄さん v2.1 - 華麗なる投資診断", pa
  # 4. ページルーティング定義
  # -----------------------------------------------------------------------------
   #-----------------------------------------------------------------------------
- home_page = st.Page("views/home.py", title="ホーム", icon="🏠")
- quiz_page = st.Page("views/quiz.py", title="学習", icon="📚")
- diagnosis_page = st.Page("views/diagnosis.py", title="診断", icon="🧠")
- simulation_page = st.Page("views/simulation.py", title="シミュレーション", icon="📊")
- mypage_page = st.Page("views/mypage.py", title="マイページ", icon="👤")
+home_page = st.Page("views/home.py", title="ホーム", icon="🏠")
+quiz_page = st.Page("views/quiz.py", title="学習", icon="📚")
+diagnosis_page = st.Page("views/diagnosis.py", title="診断", icon="🧠")
+simulation_page = st.Page("views/simulation.py", title="シミュレーション", icon="📊")
+mypage_page = st.Page("views/mypage.py", title="マイページ", icon="👤")
 
- pages = {
+pages = {
      "ホーム": home_page,
      "学習": quiz_page,
      "診断": diagnosis_page,
@@ -312,12 +311,12 @@ st.set_page_config(page_title="株兄さん v2.1 - 華麗なる投資診断", pa
  # ==============================
   #ナビゲーション
   #==============================
- pg = st.navigation(list(pages.values()))
+pg = st.navigation(list(pages.values()))
 
   #==============================
   #サイドバー（アクティブ表示）
   #==============================
- with st.sidebar:
+with st.sidebar:
      st.markdown('<div class="sidebar-title">📈 Investment Navigator</div>', unsafe_allow_html=True)
 
      st.write("ナビゲーション")
@@ -337,12 +336,12 @@ st.set_page_config(page_title="株兄さん v2.1 - 華麗なる投資診断", pa
   #==============================
   # 実行
   #==============================
- pg.run()
+pg.run()
 
   #==============================
   #フッター
   #==============================
- st.caption("株兄さん")
+st.caption("株兄さん")
 
 
 
