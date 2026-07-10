@@ -34,7 +34,7 @@ if "favorites" not in st.session_state:
 
 
 if "quiz_answered" not in st.session_state:
-
+    st.session_state.quiz_answered = False
 if "INVESTMENT_PROFILES" not in st.session_state:
     st.session_state.INVESTMENT_PROFILES = {
         "安心コツコツ型": {
