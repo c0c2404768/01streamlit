@@ -174,6 +174,12 @@ if "diagnosis_answers" not in st.session_state:
     st.session_state.diagnosis_answers = {}
 if "favorite_stock_stats" not in st.session_state:
     st.session_state.favorite_stock_stats = {}
+if "scroll_to_top" not in st.session_state:
+    st.session_state.scroll_to_top = False
+if "fav_message" not in st.session_state:
+    st.session_state.fav_message = ("info", "")
+if "fav_message_target" not in st.session_state:
+    st.session_state.fav_message_target = None
 
 # ==============================
 # 3. 質問データと配点データ
@@ -429,22 +435,48 @@ def render_product_card(product):
 
 
 def on_go_prev():
-    st.session_state.current_question -= 1
+    st.session_state.current_question = max(1, st.session_state.current_question - 1)
+    st.session_state.scroll_to_top = True
+
+
+def on_select_answer(current, val, total_questions):
+    st.session_state.answers[current] = val
+
+    if current < total_questions:
+        st.session_state.current_question = current + 1
+    else:
+        answer_list = [st.session_state.answers.get(i + 1) for i in range(total_questions)]
+        result_type, scores = calculate_result(answer_list)
+        st.session_state.diagnosis_result = result_type
+        st.session_state.diagnosis_scores = scores
+        st.session_state.user_type = result_type
+        st.session_state.has_diagnosed = True
+        st.session_state.diagnosis_feature = RESULT_DATA[result_type]["feature"]
+
     st.session_state.scroll_to_top = True
 
 
 def on_add_favorite(name):
+    product = None
+    for result_data in RESULT_DATA.values():
+        candidate = next((item for item in result_data["products"] if item["name"] == name), None)
+        if candidate:
+            product = candidate
+            break
+
+    if product:
+        risk_level = product["risk"].count("★")
+        growth_level = product["return"].count("★")
+        value_level = product["dividend"].count("★")
+        st.session_state.favorite_stock_stats[name] = [6 - risk_level, growth_level, value_level]
+
     if name not in st.session_state.favorites:
         st.session_state.favorites.append(name)
         st.session_state.fav_message = ("success", "お気に入りに追加しました")
+        st.session_state.fav_message_target = name
     else:
-        result_type, scores = calculate_result([st.session_state.answers.get(i) for i in range(len(QUESTION_DATA))])
-        st.session_state.diagnosis_result = result_type
-        st.session_state.diagnosis_scores = scores
-        # 旧ページ互換用のキーも保存して、マイページ側で確実に参照できるようにする
-        st.session_state.user_type = result_type
-        st.session_state.has_diagnosed = True
-        st.session_state.diagnosis_feature = RESULT_DATA[result_type]["feature"]
+        st.session_state.fav_message = ("info", "すでにお気に入りに登録されています")
+        st.session_state.fav_message_target = name
 
 
 # ------------------------------
@@ -561,7 +593,7 @@ st.markdown('<div class="title">投資タイプ診断</div>', unsafe_allow_html=
 st.markdown('<div class="subtitle">10問に答えて、あなたに合った投資タイプを見つけましょう</div>', unsafe_allow_html=True)
 st.markdown('<div class="notice">本診断は投資判断性のものであり、勧誘を目的としません</div>', unsafe_allow_html=True)
 
-if st.session_state.scroll_to_top:
+if st.session_state.get("scroll_to_top", False):
     st_html("<script>window.parent.document.querySelector('.main').scrollTo({top: 0, behavior: 'instant'});</script>", height=0)
     st.session_state.scroll_to_top = False
 
