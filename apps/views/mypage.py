@@ -2,12 +2,23 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import urllib.parse
+import calendar
+import uuid
 from datetime import datetime
 
 st.markdown("<h2 style='color:#FF6B6B;'>📂 キミの専用マイページ</h2>", unsafe_allow_html=True)
 
 if "memos" not in st.session_state:
     st.session_state.memos = []
+
+if "calendar_year" not in st.session_state:
+    st.session_state.calendar_year = datetime.now().year
+
+if "calendar_month" not in st.session_state:
+    st.session_state.calendar_month = datetime.now().month
+
+if "selected_calendar_date" not in st.session_state:
+    st.session_state.selected_calendar_date = datetime.now().date()
 
 # -----------------------------------------------------------------------------
 # 1. 🏆 診断結果の記録と共有
@@ -74,14 +85,40 @@ st.markdown("### 📊 銘柄比較チャート")
 if len(st.session_state.favorites) < 2:
     st.warning("比較するには、他のページで2つ以上の銘柄をお気に入りに追加してくれ！")
 else:
-    selected_favs = st.multiselect("比較したい銘柄を選んでね", st.session_state.favorites, default=st.session_state.favorites[:2])
-    
-    if selected_favs:
+    compare_palette = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd"]
+
+    if "compare_selected" not in st.session_state:
+        st.session_state.compare_selected = st.session_state.favorites[:2]
+
+    st.session_state.compare_selected = [
+        name for name in st.session_state.compare_selected
+        if name in st.session_state.favorites
+    ]
+
+    st.write("比較したい銘柄をボタンで選んでくれ：")
+    button_columns = st.columns(min(3, len(st.session_state.favorites)))
+
+    for index, name in enumerate(st.session_state.favorites):
+        column = button_columns[index % len(button_columns)]
+        is_selected = name in st.session_state.compare_selected
+        with column:
+            button_type = "primary" if is_selected else "secondary"
+            if st.button(name, key=f"compare_{index}", use_container_width=True, type=button_type):
+                if is_selected:
+                    st.session_state.compare_selected.remove(name)
+                else:
+                    st.session_state.compare_selected.append(name)
+                st.rerun()
+
+    selected_favs = st.session_state.compare_selected
+    st.caption(f"選択中: {', '.join(selected_favs) if selected_favs else 'なし'}")
+
+    if len(selected_favs) >= 2:
         compare_data = []
         all_stocks_data = []
         for p in st.session_state.INVESTMENT_PROFILES.values():
             all_stocks_data.extend(p["stocks"])
-            
+
         for name in selected_favs:
             stock_info = next((s for s in all_stocks_data if s["name"] == name), None)
             if stock_info:
@@ -91,20 +128,21 @@ else:
                     "成長": stock_info["stats"][1],
                     "お得": stock_info["stats"][2]
                 })
-        
+
         df_compare = pd.DataFrame(compare_data)
-        
+
         fig = go.Figure()
         metrics = ["安全", "成長", "お得"]
-        
-        for name in selected_favs:
+
+        for index, name in enumerate(selected_favs):
             row = df_compare[df_compare["名前"] == name].iloc[0]
             fig.add_trace(go.Bar(
                 name=name,
                 x=metrics,
-                y=[row["安全"], row["成長"], row["お得"]]
+                y=[row["安全"], row["成長"], row["お得"]],
+                marker_color=compare_palette[index % len(compare_palette)]
             ))
-            
+
         fig.update_layout(
             barmode='group',
             xaxis_title="評価項目",
@@ -114,6 +152,8 @@ else:
             height=400
         )
         st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("比較するには、ボタンで2つ以上の銘柄を選んでくれ。")
 
 
 # -----------------------------------------------------------------------------
@@ -122,6 +162,72 @@ else:
 st.markdown("---")
 st.markdown("### 📝 メモ")
 st.caption("気づきや次に買いたい銘柄を、ここにそのまま残せるぜ。")
+
+calendar_col1, calendar_col2, calendar_col3 = st.columns([1, 2, 1])
+with calendar_col1:
+    if st.button("◀ 前月", use_container_width=True):
+        if st.session_state.calendar_month == 1:
+            st.session_state.calendar_month = 12
+            st.session_state.calendar_year -= 1
+        else:
+            st.session_state.calendar_month -= 1
+        st.rerun()
+
+with calendar_col2:
+    st.markdown(
+        f"<div style='text-align:center; font-weight:700; font-size:1.15rem;'>{st.session_state.calendar_year}年 {st.session_state.calendar_month}月</div>",
+        unsafe_allow_html=True,
+    )
+
+with calendar_col3:
+    if st.button("次月 ▶", use_container_width=True):
+        if st.session_state.calendar_month == 12:
+            st.session_state.calendar_month = 1
+            st.session_state.calendar_year += 1
+        else:
+            st.session_state.calendar_month += 1
+        st.rerun()
+
+calendar_weekdays = ["日", "月", "火", "水", "木", "金", "土"]
+weekday_columns = st.columns(7)
+for index, weekday in enumerate(calendar_weekdays):
+    weekday_columns[index].markdown(
+        f"<div style='text-align:center; font-weight:700; color:#666;'>{weekday}</div>",
+        unsafe_allow_html=True,
+    )
+
+month_matrix = calendar.Calendar(firstweekday=6).monthdayscalendar(
+    st.session_state.calendar_year,
+    st.session_state.calendar_month,
+)
+
+memo_date_counts = {}
+for memo in st.session_state.memos:
+    memo_date_counts[memo.get("memo_date", memo["created_at"][:10])] = memo_date_counts.get(memo.get("memo_date", memo["created_at"][:10]), 0) + 1
+
+for week in month_matrix:
+    week_columns = st.columns(7)
+    for day_index, day in enumerate(week):
+        with week_columns[day_index]:
+            if day == 0:
+                st.markdown("<div style='height:48px;'></div>", unsafe_allow_html=True)
+                continue
+
+            selected_date = datetime(
+                st.session_state.calendar_year,
+                st.session_state.calendar_month,
+                day,
+            ).date()
+            is_selected = selected_date == st.session_state.selected_calendar_date
+            memo_count = memo_date_counts.get(selected_date.strftime("%Y-%m-%d"), 0)
+            button_label = f"{day}" if memo_count == 0 else f"{day} • {memo_count}"
+            button_type = "primary" if is_selected else "secondary"
+
+            if st.button(button_label, key=f"calendar_{selected_date.isoformat()}", use_container_width=True, type=button_type):
+                st.session_state.selected_calendar_date = selected_date
+                st.rerun()
+
+st.caption(f"選択中の日付: {st.session_state.selected_calendar_date.strftime('%Y-%m-%d')}")
 
 with st.form("memo_form", clear_on_submit=True):
     memo_title = st.text_input("メモのタイトル", placeholder="例: 今週の気づき")
@@ -133,8 +239,10 @@ with st.form("memo_form", clear_on_submit=True):
             st.session_state.memos.insert(
                 0,
                 {
+                    "memo_id": uuid.uuid4().hex,
                     "title": memo_title.strip() or "タイトルなし",
                     "body": memo_body.strip(),
+                    "memo_date": st.session_state.selected_calendar_date.strftime("%Y-%m-%d"),
                     "created_at": datetime.now().strftime("%Y-%m-%d %H:%M")
                 }
             )
@@ -146,15 +254,27 @@ with st.form("memo_form", clear_on_submit=True):
 if not st.session_state.memos:
     st.info("まだメモはないぜ。診断の気づきや気になる銘柄を書いてみよう。")
 else:
-    for index, memo in enumerate(st.session_state.memos):
-        with st.container(border=True):
-            col_left, col_right = st.columns([4, 1])
-            with col_left:
-                st.markdown(f"**{memo['title']}**")
-                if memo["body"]:
-                    st.write(memo["body"])
-                st.caption(memo["created_at"])
-            with col_right:
-                if st.button("削除", key=f"delete_memo_{index}"):
-                    st.session_state.memos.pop(index)
-                    st.rerun()
+    filtered_memos = [
+        memo for memo in st.session_state.memos
+        if memo.get("memo_date", memo["created_at"][:10]) == st.session_state.selected_calendar_date.strftime("%Y-%m-%d")
+    ]
+
+    st.markdown(f"#### {st.session_state.selected_calendar_date.strftime('%Y-%m-%d')} のメモ")
+
+    if not filtered_memos:
+        st.info("この日付のメモはまだないぜ。")
+    else:
+        for memo in filtered_memos:
+            memo_key = memo.get("memo_id", memo["created_at"])
+            with st.container(border=True):
+                col_left, col_right = st.columns([4, 1])
+                with col_left:
+                    st.markdown(f"**{memo['title']}**")
+                    if memo["body"]:
+                        st.write(memo["body"])
+                    st.caption(f"メモ日: {memo.get('memo_date', memo['created_at'][:10])}")
+                    st.caption(memo["created_at"])
+                with col_right:
+                    if st.button("削除", key=f"delete_memo_{memo_key}"):
+                        st.session_state.memos = [item for item in st.session_state.memos if item.get("memo_id") != memo_key]
+                        st.rerun()
