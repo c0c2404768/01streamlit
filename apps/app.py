@@ -1,4 +1,4 @@
-import streamlit as st
+# import streamlit as st
 
 
 # -----------------------------------------------------------------------------
@@ -6,23 +6,23 @@ import streamlit as st
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="株兄さん v2.1 - 華麗なる投資診断", page_icon="✨", layout="wide")
 
-st.markdown("""
-    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-    html, body, [data-testid="stAppViewContainer"] {
-        font-family: 'M PLUS Rounded 1c', sans-serif;
-        background: linear-gradient(135deg, #FFF5F5 0%, #FFF9F0 100%);
-    }
+# st.markdown("""
+#     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+#     <style>
+#     html, body, [data-testid="stAppViewContainer"] {
+#         font-family: 'M PLUS Rounded 1c', sans-serif;
+#         background: linear-gradient(135deg, #FFF5F5 0%, #FFF9F0 100%);
+#     }
     
-    .hero-title {
-        font-size: 3.5rem;
-        font-weight: 700;
-        background: linear-gradient(45deg, #FF6B6B, #FFD700);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-align: center;
-        margin-bottom: 0px;
-    }
+#     .hero-title {
+#         font-size: 3.5rem;
+#         font-weight: 700;
+#         background: linear-gradient(45deg, #FF6B6B, #FFD700);
+#         -webkit-background-clip: text;
+#         -webkit-text-fill-color: transparent;
+#         text-align: center;
+#         margin-bottom: 0px;
+#     }
     
     </style>
 """, unsafe_allow_html=True)
@@ -32,9 +32,9 @@ st.markdown("""
 # -----------------------------------------------------------------------------
 if "favorites" not in st.session_state:
     st.session_state.favorites = []
+
 if "quiz_answered" not in st.session_state:
     st.session_state.quiz_answered = False
-
 # -----------------------------------------------------------------------------
 # 3. 共通データ（各ページから st.session_state を経由して参照可能にする）
 # -----------------------------------------------------------------------------
@@ -63,9 +63,9 @@ if "INVESTMENT_PROFILES" not in st.session_state:
             ]
         }
     }
-
 # -----------------------------------------------------------------------------
 # 4. ページルーティング定義
+# -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 home_page = st.Page("views/home.py", title="ホーム", icon="🏠")
 diagnosis_page = st.Page("views/diagnosis.py", title="投資診断", icon="🔍")
