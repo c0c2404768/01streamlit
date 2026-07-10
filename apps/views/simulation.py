@@ -1,115 +1,154 @@
+import pandas as pd
+import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
-import plotly.graph_objects as go
-import pandas as pd
 
-st.markdown("<h2 style='color:#FF6B6B;'>📊 過去シミュレーター</h2>", unsafe_allow_html=True)
 
-all_stocks = []
-for p in st.session_state.INVESTMENT_PROFILES.values():
-    all_stocks.extend(p["stocks"])
+st.markdown("<h2 style='color:#FF6B6B;'>📊 過去5年の指数積立シミュレーション</h2>", unsafe_allow_html=True)
+st.caption("指定した株価指数に毎月同じ金額を積み立てた場合の、過去5年間の推移を確認できます。")
 
-target_stock = st.selectbox("シミュレーションする銘柄を選んでね", [s["name"] for s in all_stocks])
-selected_stock = next(s for s in all_stocks if s["name"] == target_stock)
+st.markdown(
+    """
+    <style>
+    .sim-card {
+        background: #ffffff;
+        padding: 18px;
+        border-radius: 16px;
+        border: 1px solid #f0f0f0;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+        margin-bottom: 16px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-monthly_amount = st.slider("毎月の投資額（万円）", 1, 10, 10, 1)
-annual_amount = monthly_amount * 12
+
+INDEX_OPTIONS = {
+    "日経平均株価": "^N225",
+    "全世界株式(オールカントリー)": "2559.T",
+    "S&P500": "^GSPC",
+    "NASDAQ100": "^NDX",
+}
+
+
+def build_history_projection(history: pd.DataFrame, monthly_yen: int) -> pd.DataFrame:
+    records = []
+    accumulated_units = 0.0
+    total_invested = 0.0
+    data = history.copy().dropna(subset=["Close"])
+
+    for date, row in data.iterrows():
+        price = float(row["Close"])
+        if price <= 0:
+            continue
+
+        accumulated_units += monthly_yen / price
+        total_invested += monthly_yen
+        balance = accumulated_units * price
+
+        records.append(
+            {
+                "date": date,
+                "close": price,
+                "invested": total_invested,
+                "balance": balance,
+                "gain": balance - total_invested,
+                "units": accumulated_units,
+            }
+        )
+
+    return pd.DataFrame(records)
+
+
+col1, col2 = st.columns([1.1, 0.9])
+
+with col1:
+    selected_index_name = st.selectbox("シミュレーションする株価指数", list(INDEX_OPTIONS.keys()))
+    monthly_man = st.slider("毎月の積立額（万円）", min_value=1.0, max_value=10.0, value=3.0, step=0.5)
+    years = 5
+
+
+
+monthly_yen = int(monthly_man * 10000)
+selected_ticker = INDEX_OPTIONS[selected_index_name]
 
 try:
-    with st.spinner('データを取得中...'):
-        data = yf.Ticker(selected_stock["ticker"]).history(period="5y", interval="1mo")
-        if not data.empty:
-            accumulated_shares = 0
-            total_invested = 0
-            
-            # 積立投資の計算
-            data_copy = data.copy()
-            data_copy['AccumulatedValue'] = 0.0
-            data_copy['TotalInvested'] = 0.0
-            
-            for idx, (date, row) in enumerate(data_copy.iterrows()):
-                price = row['Close']
-                accumulated_shares += monthly_amount / price
-                total_invested += monthly_amount
-                data_copy.loc[date, 'AccumulatedValue'] = accumulated_shares * price
-                data_copy.loc[date, 'TotalInvested'] = total_invested
-            
-            # グラフ描画
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=data_copy.index,
-                y=data_copy['AccumulatedValue'],
-                fill='tozeroy',
-                line=dict(color='#FF6B6B', width=3),
-                name='資産価値',
-                hovertemplate='<b>%{x|%Y年%m月}</b><br>資産: ¥%{y:.1f}万<extra></extra>'
-            ))
-            fig.add_trace(go.Scatter(
-                x=data_copy.index,
-                y=data_copy['TotalInvested'],
-                fill=None,
-                line=dict(color='gray', width=2, dash='dash'),
-                name='投資額累計',
-                hovertemplate='<b>%{x|%Y年%m月}</b><br>投資額: ¥%{y:.1f}万<extra></extra>'
-            ))
-            
-            fig.update_layout(
-                title=f"📊 {target_stock} の積立投資シミュレーション（過去5年）",
-                xaxis_title="時期",
-                yaxis_title="金額（万円）",
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                hovermode='x unified',
-                height=400
-            )
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # 結果表示
-            final_value = data_copy['AccumulatedValue'].iloc[-1]
-            total_invested_final = data_copy['TotalInvested'].iloc[-1]
-            profit = final_value - total_invested_final
-            profit_rate = (profit / total_invested_final) * 100 if total_invested_final > 0 else 0
-            
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                st.metric(
-                    "5年後の資産価値",
-                    f"{final_value:.1f} 万円",
-                    delta=f"{profit:.1f} 万円",
-                    delta_color="normal" if profit >= 0 else "inverse"
-                )
-            
-            with col2:
-                st.metric(
-                    "投資総額",
-                    f"{total_invested_final:.0f} 万円",
-                    delta=None
-                )
-            
-            with col3:
-                st.metric(
-                    "運用益率",
-                    f"{profit_rate:.1f}%",
-                    delta=None
-                )
-            
-            # 補足情報
-            st.markdown("---")
-            with st.expander("📚 積立投資のメリット"):
-                st.write(f"""
-                ✅ **投資方法**: 毎月{monthly_amount}万円を積立投資
-                
-                📈 **結果**:
-                - 投資総額: {total_invested_final:.0f}万円
-                - 資産価値: {final_value:.1f}万円
-                - 運用益: {profit:.1f}万円 ({profit_rate:.1f}%)
-                
-                 **積立投資のコツ**:
-                - 毎月同じ額を投資するので、価格が安い時は多く、高い時は少なく買える
-                - これを「ドルコスト平均法」と言って、初心者向けの最強戦法だ
-                - 相場の上下に一喜一憂せず、淡々と続けることが成功の秘訣
-                - 複利効果で雪だるま式に資産が増える
-                """)
+    with st.spinner("過去データを取得中..."):
+        history = yf.Ticker(selected_ticker).history(period="5y", interval="1mo")
+
+    projection = build_history_projection(history, monthly_yen)
+
+    if projection.empty:
+        st.warning("試算できるデータがありません。別の指数を選んでね。")
+        st.stop()
+
+    final_balance = float(projection["balance"].iloc[-1])
+    total_invested = float(projection["invested"].iloc[-1])
+    gain = final_balance - total_invested
+    gain_rate = (gain / total_invested * 100) if total_invested else 0.0
+    tax_saved = gain * 0.20315
+    annualized_return = (
+        (final_balance / total_invested) ** (1 / years) - 1
+        if total_invested > 0 and final_balance > 0
+        else 0.0
+    ) * 100
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=projection["date"],
+            y=projection["balance"] / 10000,
+            fill="tozeroy",
+            line=dict(color="#FF6B6B", width=3),
+            name="資産評価額",
+            hovertemplate="<b>%{x|%Y年%m月}</b><br>資産: ¥%{y:.2f}万円<extra></extra>",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=projection["date"],
+            y=projection["invested"] / 10000,
+            line=dict(color="#64748b", width=2, dash="dash"),
+            name="これまでの投資額",
+            hovertemplate="<b>%{x|%Y年%m月}</b><br>投資額: ¥%{y:.2f}万円<extra></extra>",
+        )
+    )
+
+    fig.update_layout(
+        title=f"📊 {selected_index_name} を毎月{monthly_man:.1f}万円積み立てた場合の過去5年シミュレーション",
+        xaxis_title="時期",
+        yaxis_title="金額（万円）",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        hovermode="x unified",
+        height=450,
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("---")
+    metric_col1, metric_col2, metric_col3 = st.columns(3)
+
+    with metric_col1:
+        st.metric("最終評価額", f"{final_balance / 10000:,.1f} 万円", delta=f"+{gain / 10000:,.1f} 万円")
+
+    with metric_col2:
+        st.metric("積立元本", f"{total_invested / 10000:,.1f} 万円")
+
+    with metric_col3:
+        st.metric("5年間の増加率", f"{gain_rate:.1f}%")
+
+
+    with st.expander("📚 積立のポイント"):
+        st.write(
+            f"""
+            - 毎月同じ額を入れると、価格が高いときは少なく、安いときは多く買いやすい。
+            - これがドルコスト平均法で、長期積立との相性がいい。
+            - NISAは運用益が非課税なので、複利の伸びをそのまま活かしやすい。
+            - この試算は {selected_index_name} の過去5年データに基づく単純モデルです。
+            """
+        )
+
 except Exception:
     st.error("データの取得に失敗したぜ…時間を置いて試してくれ！")
