@@ -147,7 +147,7 @@ with tabs[0]:
         </div>
         """,
         unsafe_allow_html=True,
-        
+
     )
     st.warning("注意：新NISAを使っても元本保証ではありません。価格は上下するため、損失が出る可能性があります。")
 
@@ -237,7 +237,7 @@ with tabs[2]:
     st.info("株兄さんポイント：初心者は「長期・積立・分散」を意識すると、理解しやすくなります。")
 
 with tabs[3]:
-    st.subheader("⚔️ 腕試し！投資クイズ")
+    st.subheader("⚔️腕試し！投資クイズ")
     st.write("学んだ内容を確認するためのクイズです。すべて選択してから採点してください。")
 
     questions = [
