@@ -1,5 +1,6 @@
 import streamlit as st
 
+
 # -----------------------------------------------------------------------------
 # 1. 共通デザイン（CSS）＆ページ基本設定
 # -----------------------------------------------------------------------------
@@ -23,46 +24,6 @@ st.markdown("""
         margin-bottom: 0px;
     }
     
-    .stButton>button {
-        border-radius: 20px;
-        background: linear-gradient(45deg, #FF6B6B, #FF8E53);
-        color: white;
-        border: none;
-        padding: 10px 30px;
-        font-weight: 700;
-        box-shadow: 0 10px 20px rgba(255, 107, 107, 0.2);
-        transition: all 0.3s;
-    }
-    .stButton>button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 15px 30px rgba(255, 107, 107, 0.4);
-    }
-    
-    .result-card {
-        background: white;
-        padding: 30px;
-        border-radius: 30px;
-        border-left: 15px solid #FFD700;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.05);
-        margin-top: 20px;
-    }
-
-    .study-card {
-        background: #FFFFFF;
-        padding: 25px;
-        border-radius: 20px;
-        border-top: 8px solid #FF6B6B;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.03);
-        margin-bottom: 20px;
-    }
-    
-    .stock-badge {
-        background: #f0f2f6;
-        padding: 5px 15px;
-        border-radius: 10px;
-        font-weight: 700;
-        color: #FF6B6B;
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -108,12 +69,13 @@ if "INVESTMENT_PROFILES" not in st.session_state:
 # -----------------------------------------------------------------------------
 home_page = st.Page("views/home.py", title="ホーム", icon="🏠")
 diagnosis_page = st.Page("views/diagnosis.py", title="投資診断", icon="🔍")
+gakushu_page = st.Page("views/1-gakushu.py", title="学習", icon="📚")
 simulation_page = st.Page("views/simulation.py", title="過去シミュレーション", icon="📊")
 quiz_page = st.Page("views/quiz.py", title="NISA学習・クイズ", icon="📝")
 mypage_page = st.Page("views/mypage.py", title="マイページ", icon="📂")
 
 # ナビゲーションの実行
 pg = st.navigation({
-    "🤵 株兄さん メニュー": [home_page, diagnosis_page, simulation_page, quiz_page, mypage_page]
+    "🤵 株兄さん メニュー": [home_page, diagnosis_page, gakushu_page, simulation_page, quiz_page, mypage_page]
 })
 pg.run()
