@@ -1,5 +1,6 @@
-import streamlit as st
+﻿import streamlit as st
 
+st.set_page_config(page_title="株兄さん", page_icon="📈", layout="wide")
 
 st.set_page_config(
     page_title="株兄さん",
