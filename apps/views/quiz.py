@@ -37,10 +37,11 @@ with tabs[1]:
         "【問題】新NISAを使って投資をしたとき、最大のメリットは何だ？",
         ["A. 絶対に株価が下がらない（元本保証）", 
          "B. 投資で得た利益に税金がかからず、丸ごと貰える", 
-         "C. 銀行の利息が10倍になる"]
+         "C. 銀行の利息が10倍になる"],
+        key="quiz_nisa_benefit"
     )
     
-    if st.button("これで勝負だ！"):
+    if st.button("これで勝負だ！", key="quiz_submit_button"):
         if "利益に税金がかからず" in quiz_choice:
             st.success("🎉 大・正・解 ！！！ キミは投資の才能があるぜ！")
             st.balloons()
