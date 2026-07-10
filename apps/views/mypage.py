@@ -24,18 +24,24 @@ if "selected_calendar_date" not in st.session_state:
 # 1. 🏆 診断結果の記録と共有
 # -----------------------------------------------------------------------------
 st.markdown("### 🏆 診断結果の記録")
-if "user_type" in st.session_state:
-    user_type = st.session_state.user_type
-    profile = st.session_state.INVESTMENT_PROFILES[user_type]
+diagnosis_type = st.session_state.get("diagnosis_result") or st.session_state.get("user_type")
+
+if diagnosis_type:
+    profile = st.session_state.get("INVESTMENT_PROFILES", {}).get(diagnosis_type)
+    description = st.session_state.get("diagnosis_feature")
+    if not description and profile:
+        description = profile.get("description")
+    if not description:
+        description = "診断結果は保存されているぜ。もう一度診断ページで確認もできるぞ。"
     
     st.markdown(f"""
         <div class='result-card'>
-            <h4 style='color:#FF6B6B;'>現在の診断タイプ：{user_type}</h4>
-            <p>{profile['description']}</p>
+            <h4 style='color:#FF6B6B;'>現在の診断タイプ：{diagnosis_type}</h4>
+            <p>{description}</p>
         </div>
     """, unsafe_allow_html=True)
     
-    share_text = f"株兄さんで診断した結果、私は「{user_type}」だったぜ！✨ #株兄さん #新NISA"
+    share_text = f"株兄さんで診断した結果、私は「{diagnosis_type}」だったぜ！✨ #株兄さん #新NISA"
     share_url = "https://your-app-url.streamlit.app/"
     
     col_sns1, col_sns2 = st.columns(2)
@@ -47,6 +53,8 @@ if "user_type" in st.session_state:
         st.link_button("LINEで仲間に送る", line_url, use_container_width=True)
 else:
     st.info("まだ診断を受けていないようだな！「投資診断」ページへGOだぜ！🚀")
+    if st.button("投資診断ページへ移動する", key="go_to_diagnosis", type="primary"):
+        st.switch_page("views/diagnosis.py")
 
 
 # -----------------------------------------------------------------------------
@@ -115,6 +123,7 @@ else:
 
     if len(selected_favs) >= 2:
         compare_data = []
+        favorite_stats = st.session_state.get("favorite_stock_stats", {})
         all_stocks_data = []
         for p in st.session_state.INVESTMENT_PROFILES.values():
             all_stocks_data.extend(p["stocks"])
@@ -128,30 +137,43 @@ else:
                     "成長": stock_info["stats"][1],
                     "お得": stock_info["stats"][2]
                 })
+                continue
 
-        df_compare = pd.DataFrame(compare_data)
+            if name in favorite_stats:
+                stats = favorite_stats[name]
+                if len(stats) == 3:
+                    compare_data.append({
+                        "名前": name,
+                        "安全": stats[0],
+                        "成長": stats[1],
+                        "お得": stats[2]
+                    })
 
-        fig = go.Figure()
-        metrics = ["安全", "成長", "お得"]
+        if len(compare_data) < 2:
+            st.warning("選択した銘柄の比較データが足りないぜ。別の銘柄を選んでみてくれ。")
+        else:
+            df_compare = pd.DataFrame(compare_data)
 
-        for index, name in enumerate(selected_favs):
-            row = df_compare[df_compare["名前"] == name].iloc[0]
-            fig.add_trace(go.Bar(
-                name=name,
-                x=metrics,
-                y=[row["安全"], row["成長"], row["お得"]],
-                marker_color=compare_palette[index % len(compare_palette)]
-            ))
+            fig = go.Figure()
+            metrics = ["安全", "成長", "お得"]
 
-        fig.update_layout(
-            barmode='group',
-            xaxis_title="評価項目",
-            yaxis_title="レベル (1-5)",
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            height=400
-        )
-        st.plotly_chart(fig, use_container_width=True)
+            for index, row in df_compare.reset_index(drop=True).iterrows():
+                fig.add_trace(go.Bar(
+                    name=row["名前"],
+                    x=metrics,
+                    y=[row["安全"], row["成長"], row["お得"]],
+                    marker_color=compare_palette[index % len(compare_palette)]
+                ))
+
+            fig.update_layout(
+                barmode='group',
+                xaxis_title="評価項目",
+                yaxis_title="レベル (1-5)",
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                height=400
+            )
+            st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("比較するには、ボタンで2つ以上の銘柄を選んでくれ。")
 
@@ -165,7 +187,7 @@ st.caption("気づきや次に買いたい銘柄を、ここにそのまま残�
 
 calendar_col1, calendar_col2, calendar_col3 = st.columns([1, 2, 1])
 with calendar_col1:
-    if st.button("◀ 前月", use_container_width=True):
+    if st.button("◀ 前月", key="calendar_prev_month", use_container_width=True):
         if st.session_state.calendar_month == 1:
             st.session_state.calendar_month = 12
             st.session_state.calendar_year -= 1
@@ -180,7 +202,7 @@ with calendar_col2:
     )
 
 with calendar_col3:
-    if st.button("次月 ▶", use_container_width=True):
+    if st.button("次月 ▶", key="calendar_next_month", use_container_width=True):
         if st.session_state.calendar_month == 12:
             st.session_state.calendar_month = 1
             st.session_state.calendar_year += 1

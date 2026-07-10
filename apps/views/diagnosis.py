@@ -170,12 +170,10 @@ if "diagnosis_result" not in st.session_state:
     st.session_state.diagnosis_result = None
 if "diagnosis_scores" not in st.session_state:
     st.session_state.diagnosis_scores = {}
-if "scroll_to_top" not in st.session_state:
-    st.session_state.scroll_to_top = True
-if "fav_message" not in st.session_state:
-    st.session_state.fav_message = None
-if "fav_message_target" not in st.session_state:
-    st.session_state.fav_message_target = None
+if "diagnosis_answers" not in st.session_state:
+    st.session_state.diagnosis_answers = {}
+if "favorite_stock_stats" not in st.session_state:
+    st.session_state.favorite_stock_stats = {}
 
 # ==============================
 # 3. 質問データと配点データ
@@ -394,22 +392,40 @@ def calculate_result(answers):
     return top_types[0], scores
 
 
-# ------------------------------
-# コールバック関数（on_click用）
-# rerunを明示的に呼ばず、ボタンクリックの1回の再実行だけで
-# 状態を更新することで、画面のがくつき（二重描画）を防ぐ
-# ------------------------------
-def on_select_answer(current, val, total_questions):
-    st.session_state.answers[current] = val
-    if current < total_questions:
-        st.session_state.current_question = current + 1
-    else:
-        # 最後の質問 → 診断結果を計算
-        answers_list = [st.session_state.answers.get(i + 1) for i in range(total_questions)]
-        result_type, scores = calculate_result(answers_list)
-        st.session_state.diagnosis_result = result_type
-        st.session_state.diagnosis_scores = scores
-    st.session_state.scroll_to_top = True
+def render_product_card(product):
+    st.markdown(
+        f"""
+        <div class='product-card'>
+            <div style='font-weight:700; font-size:1.05rem; color:#0f172a;'>{product['name']}</div>
+            <div style='color:#4b5563; margin-top:0.3rem;'>{product['reason']}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.write(f"特徴: {product['description']}")
+    st.write(f"向いている理由: {product['reason']}")
+    st.write(f"評価: リスク {product['risk']} / リターン {product['return']} / 配当 {product['dividend']}")
+    st.write(f"分散性: {product['diversification']} / 初心者向け度: {product['beginner']}")
+
+    def stars_to_level(star_text):
+        level = star_text.count("★")
+        return min(max(level, 1), 5)
+
+    if st.button(f"お気に入りに追加: {product['name']}", key=f"fav_{product['name']}"):
+        risk_level = stars_to_level(product["risk"])
+        growth_level = stars_to_level(product["return"])
+        value_level = stars_to_level(product["dividend"])
+
+        # リスクが低いほど「安全」を高くする
+        st.session_state.favorite_stock_stats[product["name"]] = [6 - risk_level, growth_level, value_level]
+
+        if product['name'] not in st.session_state.favorites:
+            st.session_state.favorites.append(product['name'])
+            st.success("お気に入りに追加しました")
+        else:
+            st.info("すでにお気に入りに登録されています")
+
 
 
 def on_go_prev():
@@ -422,8 +438,13 @@ def on_add_favorite(name):
         st.session_state.favorites.append(name)
         st.session_state.fav_message = ("success", "お気に入りに追加しました")
     else:
-        st.session_state.fav_message = ("info", "すでにお気に入りに登録されています")
-    st.session_state.fav_message_target = name
+        result_type, scores = calculate_result([st.session_state.answers.get(i) for i in range(len(QUESTION_DATA))])
+        st.session_state.diagnosis_result = result_type
+        st.session_state.diagnosis_scores = scores
+        # 旧ページ互換用のキーも保存して、マイページ側で確実に参照できるようにする
+        st.session_state.user_type = result_type
+        st.session_state.has_diagnosed = True
+        st.session_state.diagnosis_feature = RESULT_DATA[result_type]["feature"]
 
 
 # ------------------------------
