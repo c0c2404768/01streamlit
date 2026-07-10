@@ -28,12 +28,10 @@ st.markdown(
 )
 
 if "favorites" not in st.session_state:
-
-    st.session_state.favorites=[]
-
-
+    st.session_state.favorites = []
 
 if "quiz_answered" not in st.session_state:
+    st.session_state.quiz_answered = False
 
 if "INVESTMENT_PROFILES" not in st.session_state:
     st.session_state.INVESTMENT_PROFILES = {
