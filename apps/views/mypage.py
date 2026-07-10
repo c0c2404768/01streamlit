@@ -2,8 +2,12 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import urllib.parse
+from datetime import datetime
 
 st.markdown("<h2 style='color:#FF6B6B;'>📂 キミの専用マイページ</h2>", unsafe_allow_html=True)
+
+if "memos" not in st.session_state:
+    st.session_state.memos = []
 
 # -----------------------------------------------------------------------------
 # 1. 🏆 診断結果の記録と共有
@@ -110,3 +114,47 @@ else:
             height=400
         )
         st.plotly_chart(fig, use_container_width=True)
+
+
+# -----------------------------------------------------------------------------
+# 4. 📝 メモ機能
+# -----------------------------------------------------------------------------
+st.markdown("---")
+st.markdown("### 📝 メモ")
+st.caption("気づきや次に買いたい銘柄を、ここにそのまま残せるぜ。")
+
+with st.form("memo_form", clear_on_submit=True):
+    memo_title = st.text_input("メモのタイトル", placeholder="例: 今週の気づき")
+    memo_body = st.text_area("メモの内容", placeholder="例: 配当利回りを先に確認する")
+    submitted = st.form_submit_button("メモを保存")
+
+    if submitted:
+        if memo_title.strip() or memo_body.strip():
+            st.session_state.memos.insert(
+                0,
+                {
+                    "title": memo_title.strip() or "タイトルなし",
+                    "body": memo_body.strip(),
+                    "created_at": datetime.now().strftime("%Y-%m-%d %H:%M")
+                }
+            )
+            st.toast("メモを保存したぜ！")
+            st.rerun()
+        else:
+            st.warning("タイトルか内容のどちらかは入れてくれ！")
+
+if not st.session_state.memos:
+    st.info("まだメモはないぜ。診断の気づきや気になる銘柄を書いてみよう。")
+else:
+    for index, memo in enumerate(st.session_state.memos):
+        with st.container(border=True):
+            col_left, col_right = st.columns([4, 1])
+            with col_left:
+                st.markdown(f"**{memo['title']}**")
+                if memo["body"]:
+                    st.write(memo["body"])
+                st.caption(memo["created_at"])
+            with col_right:
+                if st.button("削除", key=f"delete_memo_{index}"):
+                    st.session_state.memos.pop(index)
+                    st.rerun()
