@@ -166,4 +166,6 @@ try:
 except Exception:
     st.error("データの取得に失敗したぜ…時間を置いて試してくれ！")
 
-
+streamlit
+plotly
+yfinance
