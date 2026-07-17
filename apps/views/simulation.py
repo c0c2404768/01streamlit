@@ -76,6 +76,13 @@ selected_ticker = INDEX_OPTIONS[selected_index_name]
 try:
     with st.spinner("過去データを取得中..."):
         history = yf.Ticker(selected_ticker).history(period="5y", interval="1mo")
+    # データが空でなければ、直近（最後の行）の異常データを排除する
+    if not history.empty and len(history) > 1:
+        # 最新月（最後の行）の終値が、その1つ前の月の終値の半分以下（バグ値）になっている場合、最後の行を削除する
+        last_close = history["Close"].iloc[-1]
+        prev_close = history["Close"].iloc[-2]
+        if last_close < (prev_close * 0.5) or pd.isna(last_close):
+            history = history.iloc[:-1]
 
     projection = build_history_projection(history, monthly_yen)
 
