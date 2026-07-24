@@ -4,7 +4,7 @@ import streamlit as st
 import yfinance as yf
 
 
-st.markdown("<h2 style='color:#FF6B6B;'>📊 過去10年の指数積立シミュレーション</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='color:#FF6B6B;'>📊 過去5年の指数積立シミュレーション</h2>", unsafe_allow_html=True)
 st.caption("指定した株価指数に毎月同じ金額を積み立てた場合の、過去5年間の推移を確認できます。")
 
 st.markdown(
